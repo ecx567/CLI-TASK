@@ -1,24 +1,4 @@
-#!/usr/bin/env python3
-"""
-Task Tracker CLI - A simple command-line task management application
 
-This CLI application allows users to track and manage their tasks with the following features:
-- Add, Update, and Delete tasks
-- Mark tasks as in progress or done
-- List all tasks or filter by status
-- Store tasks in a JSON file
-
-Usage examples:
-    python task_cli.py add "Buy groceries"
-    python task_cli.py update 1 "Buy groceries and cook dinner"
-    python task_cli.py delete 1
-    python task_cli.py mark-in-progress 1
-    python task_cli.py mark-done 1
-    python task_cli.py list
-    python task_cli.py list done
-    python task_cli.py list todo
-    python task_cli.py list in-progress
-"""
 
 import json
 import sys
@@ -65,8 +45,8 @@ class TaskTracker:
             sys.exit(1)
     
     def _get_current_timestamp(self) -> str:
-        """Get current timestamp in readable format."""
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        """Get current timestamp in readable format with microseconds for precision."""
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
     
     def _find_task_by_id(self, task_id: int) -> Optional[Dict[str, Any]]:
         """Find task by ID."""
