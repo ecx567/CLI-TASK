@@ -1,5 +1,7 @@
 # Task Tracker CLI v2.0 - Enhanced Edition
 
+**🌐 Project URL:** https://github.com/ecx567/CLI-TASK
+
 A sophisticated and feature-rich command-line interface (CLI) application for managing your tasks and to-do lists. Built with Python following roadmap.sh requirements and enhanced with modern productivity features. This tool helps you track what you need to do, what you have done, and what you are currently working on with powerful organization and visualization capabilities.
 
 ## 🚀 Enhanced Features
