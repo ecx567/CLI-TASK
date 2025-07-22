@@ -1,8 +1,6 @@
 # Task Tracker CLI v2.0 - Enhanced Edition
 
-**🌐 Project URL:** https://github.com/ecx567/CLI-TASK
-
-**📋 Project Page:** https://github.com/ecx567/CLI-TASK
+**📋 Project Page:** https://roadmap.sh/projects/task-tracker
 
 **🔗 Repository:** https://github.com/ecx567/CLI-TASK
 
