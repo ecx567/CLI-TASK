@@ -1,7 +1,12 @@
-# Task Tracker CLI - .gitignore
+# Task Tracker CLI v2.0 - Enhanced Git Ignore File
 
 # Task data files (user-specific)
 tasks.json
+*.json
+
+# Enhanced features
+backups/
+config.json
 
 # Python cache files
 __pycache__/

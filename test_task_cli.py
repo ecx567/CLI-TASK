@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Test suite for Task Tracker CLI
+Enhanced Test suite for Task Tracker CLI v2.0
 
-This file contains unit tests for the TaskTracker class and its methods.
+This file contains unit tests for the enhanced TaskTracker class and its methods.
 Tests cover all the core functionality including add, update, delete,
-mark operations, and listing tasks.
+mark operations, listing tasks, categories, priorities, search, and statistics.
+Includes backward compatibility tests for original functionality.
 """
 
 import unittest
@@ -20,10 +21,11 @@ from contextlib import redirect_stdout, redirect_stderr
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from task_cli import TaskTracker
+from config import config
 
 
 class TestTaskTracker(unittest.TestCase):
-    """Test cases for TaskTracker class."""
+    """Test cases for enhanced TaskTracker class."""
     
     def setUp(self):
         """Set up test environment before each test."""
@@ -37,14 +39,25 @@ class TestTaskTracker(unittest.TestCase):
         # Remove temporary file
         if os.path.exists(self.temp_file.name):
             os.unlink(self.temp_file.name)
+        # Clean up backup directory if created
+        backup_dir = Path("backups")
+        if backup_dir.exists():
+            for backup_file in backup_dir.glob("*.json"):
+                backup_file.unlink()
+            try:
+                backup_dir.rmdir()
+            except OSError:
+                pass
     
     def test_initial_state(self):
-        """Test initial state of TaskTracker."""
+        """Test initial state of enhanced TaskTracker."""
         self.assertEqual(len(self.tracker.tasks["tasks"]), 0)
         self.assertEqual(self.tracker.tasks["next_id"], 1)
+        self.assertIn("metadata", self.tracker.tasks)
+        self.assertIn("version", self.tracker.tasks["metadata"])
     
     def test_add_task(self):
-        """Test adding a new task."""
+        """Test adding a new task with backward compatibility."""
         # Capture output
         with StringIO() as buf, redirect_stdout(buf):
             self.tracker.add_task("Test task")
@@ -56,6 +69,29 @@ class TestTaskTracker(unittest.TestCase):
         self.assertEqual(task["id"], 1)
         self.assertEqual(task["description"], "Test task")
         self.assertEqual(task["status"], "todo")
+        self.assertEqual(task["category"], "general")  # Default category
+        self.assertEqual(task["priority"], "medium")   # Default priority
+        self.assertIsNotNone(task["createdAt"])
+        self.assertIsNotNone(task["updatedAt"])
+        self.assertEqual(self.tracker.tasks["next_id"], 2)
+        self.assertIn("Task added successfully (ID: 1)", output)
+    
+    def test_add_task_enhanced(self):
+        """Test adding a new task with enhanced features."""
+        # Capture output
+        with StringIO() as buf, redirect_stdout(buf):
+            self.tracker.add_task("Test task", "work", "high", "2025-07-30")
+            output = buf.getvalue()
+        
+        # Check if task was added
+        self.assertEqual(len(self.tracker.tasks["tasks"]), 1)
+        task = self.tracker.tasks["tasks"][0]
+        self.assertEqual(task["id"], 1)
+        self.assertEqual(task["description"], "Test task")
+        self.assertEqual(task["status"], "todo")
+        self.assertEqual(task["category"], "work")
+        self.assertEqual(task["priority"], "high")
+        self.assertEqual(task["due_date"], "2025-07-30")
         self.assertIsNotNone(task["createdAt"])
         self.assertIsNotNone(task["updatedAt"])
         self.assertEqual(self.tracker.tasks["next_id"], 2)
@@ -70,17 +106,35 @@ class TestTaskTracker(unittest.TestCase):
             output = buf.getvalue()
         
         self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
-        self.assertIn("Error: Task description cannot be empty.", output)
+        self.assertIn("Task description cannot be empty.", output)
         
         with StringIO() as buf, redirect_stdout(buf):
             self.tracker.add_task("   ")
             output = buf.getvalue()
         
         self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
-        self.assertIn("Error: Task description cannot be empty.", output)
+        self.assertIn("Task description cannot be empty.", output)
+    
+    def test_add_task_validation(self):
+        """Test task validation for enhanced features."""
+        initial_count = len(self.tracker.tasks["tasks"])
+        
+        # Test invalid priority
+        with StringIO() as buf, redirect_stdout(buf):
+            self.tracker.add_task("Test", "general", "invalid")
+            output = buf.getvalue()
+        self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
+        self.assertIn("Invalid priority", output)
+        
+        # Test invalid due date
+        with StringIO() as buf, redirect_stdout(buf):
+            self.tracker.add_task("Test", "general", "medium", "invalid-date")
+            output = buf.getvalue()
+        self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
+        self.assertIn("Invalid due date format", output)
     
     def test_update_task(self):
-        """Test updating a task."""
+        """Test updating a task with backward compatibility."""
         # Add a task first
         self.tracker.add_task("Original task")
         original_created_at = self.tracker.tasks["tasks"][0]["createdAt"]
@@ -97,6 +151,24 @@ class TestTaskTracker(unittest.TestCase):
         self.assertNotEqual(task["updatedAt"], original_created_at)  # Should change
         self.assertIn("Task 1 updated successfully.", output)
     
+    def test_update_task_enhanced(self):
+        """Test updating a task with enhanced features."""
+        # Add a task first
+        self.tracker.add_task("Original task", "work", "medium")
+        
+        # Update with enhanced options
+        with StringIO() as buf, redirect_stdout(buf):
+            self.tracker.update_task(1, "Updated task", "personal", "high", "2025-08-01")
+            output = buf.getvalue()
+        
+        # Check if task was updated
+        task = self.tracker.tasks["tasks"][0]
+        self.assertEqual(task["description"], "Updated task")
+        self.assertEqual(task["category"], "personal")
+        self.assertEqual(task["priority"], "high")
+        self.assertEqual(task["due_date"], "2025-08-01")
+        self.assertIn("Task 1 updated successfully.", output)
+    
     def test_update_nonexistent_task(self):
         """Test updating a task that doesn't exist."""
         initial_count = len(self.tracker.tasks["tasks"])
@@ -106,7 +178,7 @@ class TestTaskTracker(unittest.TestCase):
             output = buf.getvalue()
         
         self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
-        self.assertIn("Error: Task with ID 999 not found.", output)
+        self.assertIn("Task with ID 999 not found.", output)
     
     def test_delete_task(self):
         """Test deleting a task."""
@@ -133,7 +205,7 @@ class TestTaskTracker(unittest.TestCase):
             output = buf.getvalue()
         
         self.assertEqual(len(self.tracker.tasks["tasks"]), initial_count)
-        self.assertIn("Error: Task with ID 999 not found.", output)
+        self.assertIn("Task with ID 999 not found.", output)
     
     def test_mark_in_progress(self):
         """Test marking a task as in progress."""
@@ -179,8 +251,8 @@ class TestTaskTracker(unittest.TestCase):
             self.tracker.mark_done(999)
             output2 = buf.getvalue()
         
-        self.assertIn("Error: Task with ID 999 not found.", output1)
-        self.assertIn("Error: Task with ID 999 not found.", output2)
+        self.assertIn("Task with ID 999 not found.", output1)
+        self.assertIn("Task with ID 999 not found.", output2)
     
     def test_list_tasks_empty(self):
         """Test listing tasks when no tasks exist."""
@@ -220,7 +292,7 @@ class TestTaskTracker(unittest.TestCase):
         
         # Test filtering by todo
         with StringIO() as buf, redirect_stdout(buf):
-            self.tracker.list_tasks("todo")
+            self.tracker.list_tasks(status_filter="todo")
             output = buf.getvalue()
         
         self.assertIn("Todo task", output)
@@ -230,7 +302,7 @@ class TestTaskTracker(unittest.TestCase):
         
         # Test filtering by done
         with StringIO() as buf, redirect_stdout(buf):
-            self.tracker.list_tasks("done")
+            self.tracker.list_tasks(status_filter="done")
             output = buf.getvalue()
         
         self.assertNotIn("Todo task", output)
@@ -238,13 +310,111 @@ class TestTaskTracker(unittest.TestCase):
         self.assertIn("Done task", output)
         self.assertIn("Total: 1 task(s)", output)
     
+    def test_list_tasks_enhanced(self):
+        """Test enhanced list functionality."""
+        # Add test tasks
+        self.tracker.add_task("Work task", "work", "high")
+        self.tracker.add_task("Personal task", "personal", "low")
+        self.tracker.mark_done(1)
+        
+        # Test listing with filters
+        with StringIO() as buf, redirect_stdout(buf):
+            self.tracker.list_tasks(category_filter="work")
+            output = buf.getvalue()
+        
+        self.assertIn("Work task", output)
+        self.assertNotIn("Personal task", output)
+    
     def test_list_tasks_invalid_filter(self):
         """Test listing tasks with invalid filter."""
         with StringIO() as buf, redirect_stdout(buf):
-            self.tracker.list_tasks("invalid")
+            self.tracker.list_tasks(status_filter="invalid")
             output = buf.getvalue()
         
-        self.assertIn("Error: Invalid status 'invalid'", output)
+        self.assertIn("Invalid status 'invalid'", output)
+    
+    def test_search_tasks(self):
+        """Test task search functionality."""
+        # Add test tasks
+        self.tracker.add_task("Buy groceries", "shopping", "high")
+        self.tracker.add_task("Write documentation", "work", "medium")
+        self.tracker.add_task("Review grocery list", "shopping", "low")
+        
+        # Search for "grocer" - should find both "Buy groceries" and "Review grocery list" 
+        # because both contain "grocer" (from "groceries" and "grocery")
+        results = self.tracker.search_tasks("grocer")
+        self.assertEqual(len(results), 2)
+        
+        # Search for "documentation"
+        results = self.tracker.search_tasks("documentation")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["description"], "Write documentation")
+    
+    def test_filter_tasks(self):
+        """Test task filtering functionality."""
+        # Add test tasks with different attributes
+        self.tracker.add_task("Task 1", "work", "high")
+        self.tracker.add_task("Task 2", "work", "low")
+        self.tracker.add_task("Task 3", "personal", "high")
+        
+        # Filter by category
+        filtered = self.tracker.filter_tasks(self.tracker.tasks["tasks"], category="work")
+        self.assertEqual(len(filtered), 2)
+        
+        # Filter by priority
+        filtered = self.tracker.filter_tasks(self.tracker.tasks["tasks"], priority="high")
+        self.assertEqual(len(filtered), 2)
+        
+        # Filter by both category and priority
+        filtered = self.tracker.filter_tasks(self.tracker.tasks["tasks"], category="work", priority="high")
+        self.assertEqual(len(filtered), 1)
+    
+    def test_sort_tasks(self):
+        """Test task sorting functionality."""
+        # Add test tasks
+        self.tracker.add_task("Z task", "work", "low")
+        self.tracker.add_task("A task", "personal", "high")
+        
+        tasks = self.tracker.tasks["tasks"]
+        
+        # Sort by description
+        sorted_tasks = self.tracker.sort_tasks(tasks, "description")
+        self.assertEqual(sorted_tasks[0]["description"], "A task")
+        self.assertEqual(sorted_tasks[1]["description"], "Z task")
+        
+        # Sort by priority (reverse) - priority index: low=0, medium=1, high=2
+        # So reverse=True should put high (index 2) first, then low (index 0)
+        sorted_tasks = self.tracker.sort_tasks(tasks, "priority", reverse=True)
+        self.assertEqual(sorted_tasks[0]["priority"], "high")  # A task
+        self.assertEqual(sorted_tasks[1]["priority"], "low")   # Z task
+    
+    def test_statistics(self):
+        """Test statistics functionality."""
+        # Add test tasks with different statuses and priorities
+        self.tracker.add_task("Task 1", "work", "high")
+        self.tracker.add_task("Task 2", "work", "medium")
+        self.tracker.add_task("Task 3", "personal", "low")
+        
+        # Mark some tasks as done
+        self.tracker.mark_done(1)
+        self.tracker.mark_in_progress(2)
+        
+        stats = self.tracker.get_statistics()
+        
+        self.assertEqual(stats["total"], 3)
+        self.assertEqual(stats["status_counts"]["done"], 1)
+        self.assertEqual(stats["status_counts"]["in-progress"], 1)
+        self.assertEqual(stats["status_counts"]["todo"], 1)
+        self.assertAlmostEqual(stats["completion_rate"], 33.3, places=1)
+        
+        # Test category breakdown
+        self.assertEqual(stats["categories"]["work"], 2)
+        self.assertEqual(stats["categories"]["personal"], 1)
+        
+        # Test priority breakdown
+        self.assertEqual(stats["priority_counts"]["high"], 1)
+        self.assertEqual(stats["priority_counts"]["medium"], 1)
+        self.assertEqual(stats["priority_counts"]["low"], 1)
     
     def test_find_task_by_id(self):
         """Test finding task by ID."""
@@ -319,6 +489,36 @@ class TestTaskTracker(unittest.TestCase):
         self.assertEqual(len(tracker.tasks["tasks"]), 0)
         self.assertEqual(tracker.tasks["next_id"], 1)
         self.assertIn("Error loading tasks file", output)
+    
+    def test_migration_old_format(self):
+        """Test migration from old task format."""
+        # Create old format data
+        old_data = {
+            "tasks": [
+                {
+                    "id": 1,
+                    "description": "Old task",
+                    "status": "todo",
+                    "createdAt": "2025-07-22 10:00:00.000000",
+                    "updatedAt": "2025-07-22 10:00:00.000000"
+                }
+            ],
+            "next_id": 2
+        }
+        
+        # Write old format to file
+        with open(self.temp_file.name, 'w') as f:
+            json.dump(old_data, f)
+        
+        # Load with new tracker
+        tracker = TaskTracker(self.temp_file.name)
+        
+        # Check migration
+        task = tracker.tasks["tasks"][0]
+        self.assertEqual(task["category"], "general")
+        self.assertEqual(task["priority"], "medium")
+        self.assertIsNone(task["due_date"])
+        self.assertIn("metadata", tracker.tasks)
 
 
 class TestTaskTrackerEdgeCases(unittest.TestCase):
@@ -354,7 +554,7 @@ class TestTaskTrackerEdgeCases(unittest.TestCase):
     
     def test_very_long_description(self):
         """Test handling of very long task descriptions."""
-        long_description = "A" * 1000
+        long_description = "A" * 500  # Within limit
         self.tracker.add_task(long_description)
         task = self.tracker.tasks["tasks"][0]
         self.assertEqual(task["description"], long_description)
@@ -380,6 +580,29 @@ class TestTaskTrackerEdgeCases(unittest.TestCase):
 
 if __name__ == "__main__":
     # Run all tests
-    print("Running Task Tracker CLI Tests...")
-    print("=" * 50)
-    unittest.main(verbosity=2)
+    print("Running Enhanced Task Tracker CLI Tests...")
+    print("=" * 60)
+    
+    # Create test suite
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    
+    # Add test cases
+    suite.addTests(loader.loadTestsFromTestCase(TestTaskTracker))
+    suite.addTests(loader.loadTestsFromTestCase(TestTaskTrackerEdgeCases))
+    
+    # Run tests
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    
+    # Print summary
+    print("\n" + "=" * 60)
+    print(f"Tests run: {result.testsRun}")
+    print(f"Failures: {len(result.failures)}")
+    print(f"Errors: {len(result.errors)}")
+    
+    if result.wasSuccessful():
+        print("🎉 All tests passed!")
+    else:
+        print("❌ Some tests failed!")
+        sys.exit(1)

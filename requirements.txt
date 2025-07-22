@@ -1,9 +1,12 @@
 # Task Tracker CLI Requirements
-# This project uses only Python standard library modules
-# No external dependencies are required for core functionality
+# This project now includes enhanced functionality with some external dependencies
 
 # Python version requirement
 # python>=3.6
+
+# Core dependencies for enhanced functionality:
+colorama>=0.4.4            # Terminal colors and styling
+tabulate>=0.8.9            # Beautiful table formatting
 
 # Core modules used (all part of standard library):
 # - json: For JSON file operations
@@ -16,23 +19,25 @@
 # - tempfile: For testing with temporary files
 # - subprocess: For demo script execution
 # - time: For demo script timing
+# - argparse: For command line argument parsing
+# - shutil: For file operations
 
 # Optional development dependencies for enhanced development experience:
 # Uncomment the following lines if you want enhanced development tools
 
 # Testing
-# pytest>=6.0.0              # Alternative testing framework
-# pytest-cov>=2.10.0         # Coverage reporting
+pytest>=6.0.0              # Alternative testing framework
+pytest-cov>=2.10.0         # Coverage reporting
 
 # Code Quality  
-# black>=21.0.0              # Code formatter
-# isort>=5.9.0               # Import sorter
-# flake8>=3.8.0              # Code linter
-# mypy>=0.812                # Type checker
+black>=21.0.0              # Code formatter
+isort>=5.9.0               # Import sorter
+flake8>=3.8.0              # Code linter
+mypy>=0.812                # Type checker
 
 # Documentation
-# sphinx>=4.0.0              # Documentation generator
-# sphinx-rtd-theme>=0.5.0    # ReadTheDocs theme
+sphinx>=4.0.0              # Documentation generator
+sphinx-rtd-theme>=0.5.0    # ReadTheDocs theme
 
 # Development
-# pre-commit>=2.15.0         # Git hooks for code quality
+pre-commit>=2.15.0         # Git hooks for code quality

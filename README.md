@@ -1,22 +1,37 @@
-# Task Tracker CLI
+# Task Tracker CLI v2.0 - Enhanced Edition
 
-A simple and efficient command-line interface (CLI) application for managing your tasks and to-do lists. Built with Python following the requirements from roadmap.sh, this tool allows you to track what you need to do, what you have done, and what you are currently working on.
+A sophisticated and feature-rich command-line interface (CLI) application for managing your tasks and to-do lists. Built with Python following roadmap.sh requirements and enhanced with modern productivity features. This tool helps you track what you need to do, what you have done, and what you are currently working on with powerful organization and visualization capabilities.
 
-## 🚀 Features
+## 🚀 Enhanced Features
 
-- **Add Tasks**: Create new tasks with descriptions
-- **Update Tasks**: Modify existing task descriptions  
+### Core Functionality
+- **Add Tasks**: Create new tasks with descriptions, categories, priorities, and due dates
+- **Update Tasks**: Modify existing task descriptions and attributes
 - **Delete Tasks**: Remove tasks you no longer need
 - **Mark Progress**: Change task status to "in-progress" or "done"
-- **List Tasks**: View all tasks or filter by status (todo, in-progress, done)
-- **Persistent Storage**: All tasks are saved to a JSON file
-- **Error Handling**: Graceful handling of errors and edge cases
-- **Unicode Support**: Full support for international characters
+- **List Tasks**: View all tasks or filter by multiple criteria
+- **Persistent Storage**: All tasks are saved to JSON with automatic backups
+
+### New Enhanced Features ⭐
+- **Categories**: Organize tasks by categories (work, personal, shopping, etc.)
+- **Priorities**: Set task priorities (high, medium, low) with visual indicators
+- **Due Dates**: Set and track due dates with urgency warnings
+- **Advanced Search**: Search tasks by content with powerful filtering
+- **Beautiful Tables**: Enhanced table formatting with colors and proper alignment
+- **Statistics & Reports**: Comprehensive productivity analytics and insights
+- **Smart Filtering**: Filter by status, category, priority, due dates, and more
+- **Flexible Sorting**: Sort tasks by any field in ascending or descending order
+- **Backup System**: Automatic backup creation with configurable retention
+- **Configuration**: Customizable settings via config file or environment variables
+- **Enhanced CLI**: Modern argument parsing with help and validation
+- **Unicode Support**: Full support for international characters and emojis
+- **Error Handling**: Graceful handling of errors with helpful messages
 
 ## 📋 Requirements
 
 - Python 3.6 or higher
-- No external dependencies (uses only Python standard library)
+- colorama (for enhanced colors)
+- tabulate (for beautiful table formatting)
 
 ## 🔧 Installation
 
@@ -26,78 +41,421 @@ A simple and efficient command-line interface (CLI) application for managing you
    cd CLI-TASK
    ```
 
-2. Make the script executable (optional, for Unix-like systems):
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Make the script executable (optional, for Unix-like systems):
    ```bash
    chmod +x task_cli.py
    ```
 
 ## 📖 Usage
 
-The basic syntax is:
+The enhanced CLI uses modern argument parsing with subcommands:
+
 ```bash
-python task_cli.py <command> [arguments]
+python task_cli.py <command> [arguments] [options]
 ```
 
 ### Available Commands
 
-#### 1. Add a new task
+#### 1. Add a new task (Enhanced)
 ```bash
-python task_cli.py add "Your task description"
-```
-**Example:**
-```bash
-python task_cli.py add "Buy groceries"
-# Output: Task added successfully (ID: 1)
+python task_cli.py add "Task description" [options]
 ```
 
-#### 2. Update an existing task
+**Options:**
+- `--category, -c`: Task category (default: general)
+- `--priority, -p`: Priority level (low, medium, high)
+- `--due, -d`: Due date in YYYY-MM-DD format
+
+**Examples:**
 ```bash
-python task_cli.py update <task_id> "New description"
+python task_cli.py add "Buy groceries" --category shopping --priority high
+python task_cli.py add "Finish project" --category work --priority medium --due 2025-07-30
+python task_cli.py add "Call mom" --priority high --due 2025-07-23
 ```
-**Example:**
+
+#### 2. Update an existing task (Enhanced)
+```bash
+python task_cli.py update <task_id> "New description" [options]
+```
+
+**Options:**
+- `--category, -c`: New category
+- `--priority, -p`: New priority
+- `--due, -d`: New due date
+
+**Examples:**
 ```bash
 python task_cli.py update 1 "Buy groceries and cook dinner"
-# Output: Task 1 updated successfully.
+python task_cli.py update 2 "Complete quarterly report" --priority high --due 2025-07-25
 ```
 
 #### 3. Delete a task
 ```bash
 python task_cli.py delete <task_id>
 ```
-**Example:**
-```bash
-python task_cli.py delete 1
-# Output: Task 1 deleted successfully.
-```
 
-#### 4. Mark task as in progress
+#### 4. Mark task status
 ```bash
 python task_cli.py mark-in-progress <task_id>
-```
-**Example:**
-```bash
-python task_cli.py mark-in-progress 1
-# Output: Task 1 marked as in progress.
-```
-
-#### 5. Mark task as done
-```bash
 python task_cli.py mark-done <task_id>
 ```
-**Example:**
+
+#### 5. List tasks (Enhanced)
 ```bash
-python task_cli.py mark-done 1
-# Output: Task 1 marked as done.
+python task_cli.py list [status] [options]
 ```
 
-#### 6. List all tasks
+**Options:**
+- `--category, -c`: Filter by category
+- `--priority, -p`: Filter by priority
+- `--due-soon`: Show tasks due within a week
+- `--sort`: Sort by field (id, description, status, priority, category, created, updated, due_date)
+- `--reverse`: Reverse sort order
+
+**Examples:**
 ```bash
-python task_cli.py list
+python task_cli.py list                                    # All tasks
+python task_cli.py list todo                              # Only TODO tasks
+python task_cli.py list --category work                   # Work tasks only
+python task_cli.py list --priority high                   # High priority tasks
+python task_cli.py list --due-soon                        # Tasks due soon
+python task_cli.py list --sort priority --reverse         # Sort by priority (high to low)
+python task_cli.py list todo --category work --sort due_date  # Complex filtering
 ```
 
-#### 7. List tasks by status
+#### 6. Search tasks (New)
 ```bash
-python task_cli.py list <status>
+python task_cli.py search "query" [options]
+```
+
+**Options:**
+- `--status`: Filter results by status
+- `--category, -c`: Filter results by category  
+- `--priority, -p`: Filter results by priority
+
+**Examples:**
+```bash
+python task_cli.py search "grocery"                       # Find all tasks containing "grocery"
+python task_cli.py search "report" --category work        # Search work tasks for "report"
+python task_cli.py search "urgent" --priority high        # Search high-priority tasks for "urgent"
+```
+
+#### 7. Statistics and Reports (New)
+```bash
+python task_cli.py stats
+```
+
+Shows comprehensive statistics including:
+- Overall completion rate
+- Status breakdown with percentages
+- Priority distribution
+- Category analysis
+- Due date warnings (overdue, due today, due this week)
+- Weekly productivity metrics
+
+### Global Options
+
+- `--data-file`: Use custom data file location
+- `--no-color`: Disable colored output
+- `--version`: Show version information
+- `--help, -h`: Show help message
+
+## 📊 Sample Enhanced Output
+
+### Task List with Beautiful Formatting
+```
++------+--------------------------------+-------------+----------+----------+--------------+-----------+
+|   ID | Description                    | Status      | Priority | Category | Due Date     | Created   |
++======+================================+=============+==========+==========+==============+===========+
+|    1 | Buy groceries and cook dinner  | in-progress | high     | shopping | Due in 2 days| 07-22 10:30|
+|    2 | Write project documentation    | done        | medium   | work     | No due date  | 07-22 10:31|
+|    3 | Review code changes            | todo        | high     | work     | Due today    | 07-22 10:32|
+|    4 | Plan summer vacation           | todo        | low      | personal | Due in 15 day| 07-22 10:33|
++------+--------------------------------+-------------+----------+----------+--------------+-----------+
+
+Total: 4 task(s)
+```
+
+### Statistics Report
+```
+📊 Task Statistics Report
+==================================================
+
+📋 Overall Statistics:
+   Total tasks: 8
+   Completion rate: 37.5%
+
+📈 Status Breakdown:
+   Todo: 4 (50.0%)
+   In-progress: 1 (12.5%)
+   Done: 3 (37.5%)
+
+🎯 Priority Breakdown:
+   High: 3 (37.5%)
+   Medium: 3 (37.5%)
+   Low: 2 (25.0%)
+
+📂 Category Breakdown:
+   Work: 4 (50.0%)
+   Personal: 2 (25.0%)
+   Shopping: 2 (25.0%)
+
+⏰ Due Date Summary:
+   ⚠ Overdue tasks: 1
+   ⚠ Due today: 2
+   ℹ Due this week: 3
+
+📅 This Week's Activity:
+   Created: 8 tasks
+   Completed: 3 tasks
+   ⚠ You're behind by 5 tasks
+```
+
+## 🏗️ Enhanced Task Properties
+
+Each task now includes:
+
+- **id**: Unique identifier (auto-generated)
+- **description**: Task description
+- **status**: Current status (todo, in-progress, done)
+- **category**: Task category for organization
+- **priority**: Priority level (low, medium, high)
+- **due_date**: Optional due date (YYYY-MM-DD)
+- **createdAt**: Creation timestamp
+- **updatedAt**: Last modification timestamp
+
+## 💾 Enhanced Data Storage
+
+### JSON Structure v2.0
+```json
+{
+  "tasks": [
+    {
+      "id": 1,
+      "description": "Buy groceries",
+      "status": "todo",
+      "category": "shopping",
+      "priority": "high",
+      "due_date": "2025-07-25",
+      "createdAt": "2025-07-22 10:30:15.123456",
+      "updatedAt": "2025-07-22 10:30:15.123456"
+    }
+  ],
+  "next_id": 2,
+  "metadata": {
+    "version": "2.0",
+    "created": "2025-07-22 10:30:15.123456",
+    "last_modified": "2025-07-22 10:30:15.123456"
+  }
+}
+```
+
+### Backup System
+- Automatic backups created before each save operation
+- Backups stored in `backups/` directory
+- Configurable retention (default: 5 backups)
+- Timestamped backup files: `tasks_backup_YYYYMMDD_HHMMSS.json`
+
+### Configuration
+Create `config.json` for custom settings:
+```json
+{
+  "data_file": "my_tasks.json",
+  "backup_enabled": true,
+  "backup_count": 10,
+  "tasks_per_page": 25,
+  "colors": {
+    "high": "red",
+    "medium": "yellow",
+    "low": "green"
+  }
+}
+```
+
+## 🚨 Enhanced Error Handling
+
+The application provides helpful error messages for:
+- **Validation errors**: Empty descriptions, invalid priorities, invalid dates
+- **Not found errors**: Non-existent task IDs
+- **Format errors**: Invalid date formats, command syntax
+- **File errors**: Corrupted JSON, permission issues
+- **Input errors**: Invalid filters, malformed queries
+
+## 🧪 Testing
+
+Run the comprehensive test suite:
+
+```bash
+# Original test suite (backward compatibility)
+python test_task_cli.py
+
+# Enhanced test suite (new features)
+python test_task_cli_enhanced.py
+```
+
+The enhanced test suite includes:
+- Unit tests for all new functionality
+- Backward compatibility tests
+- Enhanced feature testing (categories, priorities, search)
+- Statistics and filtering tests
+- Error condition testing
+- Data migration testing
+
+## 🎭 Demo
+
+Run the enhanced interactive demo:
+
+```bash
+python demo.py
+```
+
+The demo showcases:
+- All enhanced features
+- Complex filtering examples
+- Search functionality
+- Statistics reporting
+- Error handling
+- Unicode support
+
+## 📁 Enhanced Project Structure
+
+```
+CLI-TASK/
+├── task_cli.py              # Main enhanced application
+├── config.py                # Configuration management
+├── utils.py                 # Utility functions (colors, formatting)
+├── test_task_cli.py         # Original test suite
+├── test_task_cli_enhanced.py # Enhanced test suite
+├── demo.py                  # Enhanced interactive demo
+├── README.md                # This documentation
+├── requirements.txt         # Dependencies
+├── tasks.json               # Data file (created automatically)
+├── config.json              # Configuration file (optional)
+└── backups/                 # Automatic backups directory
+    ├── tasks_backup_20250722_103015.json
+    └── tasks_backup_20250722_103230.json
+```
+
+## 🔧 Implementation Details
+
+- **Language**: Python 3.6+
+- **Storage**: Enhanced JSON format with metadata
+- **Architecture**: Modular object-oriented design
+- **CLI Framework**: argparse with subcommands
+- **Colors**: colorama for cross-platform terminal colors
+- **Tables**: tabulate for beautiful table formatting
+- **Configuration**: JSON-based with environment variable support
+- **Backup**: Automatic with configurable retention
+- **Type Hints**: Full type annotation support
+- **Testing**: Comprehensive test coverage
+
+## ✅ Enhanced Requirements Compliance
+
+### Original Requirements ✅
+- ✅ Add, Update, and Delete tasks
+- ✅ Mark a task as in progress or done  
+- ✅ List all tasks
+- ✅ List tasks by status
+- ✅ JSON file storage
+- ✅ Error handling
+
+### Enhanced Features ✅
+- ✅ Advanced filtering and search
+- ✅ Categories and priorities
+- ✅ Due dates with urgency indicators
+- ✅ Beautiful table formatting with colors
+- ✅ Comprehensive statistics and reporting
+- ✅ Flexible sorting options
+- ✅ Automatic backup system
+- ✅ Modern CLI with argparse
+- ✅ Configuration management
+- ✅ Enhanced error messages
+- ✅ Unicode support
+- ✅ Backward compatibility
+
+## 🎯 Use Cases
+
+### Personal Task Management
+```bash
+# Morning routine
+python task_cli.py add "Review daily goals" --category personal --priority high
+python task_cli.py list --due-soon --sort due_date
+
+# Work tasks
+python task_cli.py add "Prepare presentation" --category work --priority high --due 2025-07-25
+python task_cli.py list --category work --sort priority --reverse
+
+# Shopping
+python task_cli.py add "Buy milk" --category shopping --priority medium
+python task_cli.py search "buy" --category shopping
+```
+
+### Team Project Management
+```bash
+# Sprint planning
+python task_cli.py add "Implement user authentication" --category development --priority high --due 2025-07-30
+python task_cli.py add "Write unit tests" --category testing --priority medium --due 2025-08-01
+python task_cli.py add "Deploy to staging" --category deployment --priority low --due 2025-08-05
+
+# Daily standup
+python task_cli.py list in-progress
+python task_cli.py stats
+```
+
+### Academic/Research Work
+```bash
+# Research tasks
+python task_cli.py add "Read papers on ML algorithms" --category research --priority medium --due 2025-07-28
+python task_cli.py add "Finish literature review" --category writing --priority high --due 2025-07-30
+
+# Assignment tracking
+python task_cli.py list --category coursework --sort due_date
+python task_cli.py search "assignment" --priority high
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Areas for enhancement:
+
+1. **New Features**: Additional export formats, recurring tasks, time tracking
+2. **Integrations**: Calendar sync, cloud storage, notification systems
+3. **UI Improvements**: Progress bars, charts, better mobile support
+4. **Performance**: Database backend, indexing, caching
+5. **Documentation**: Tutorials, examples, API documentation
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 🎯 Project Evolution
+
+**v1.0** - Basic task management with core CRUD operations
+**v2.0** - Enhanced edition with:
+- Categories and priorities
+- Due dates and urgency tracking
+- Advanced search and filtering  
+- Beautiful table formatting
+- Comprehensive statistics
+- Backup system
+- Modern CLI interface
+- Configuration management
+
+**Future Roadmap:**
+- v2.1: Recurring tasks, time tracking
+- v2.2: Cloud synchronization, team collaboration
+- v2.3: Mobile app companion, API
+- v3.0: AI-powered task suggestions, analytics
+
+---
+
+**🎉 Enhanced Task Tracking for Modern Productivity! 🚀✨**
+
+*Built with ❤️ following roadmap.sh project requirements and enhanced for real-world productivity needs*
 ```
 Where `<status>` can be:
 - `todo` - Tasks not yet started
